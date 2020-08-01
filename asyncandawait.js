@@ -66,3 +66,103 @@ loginActivities(login(), updateAccount());
 // a closure is a function that can be wrap inside of a variable, and then it can be passed into othe functions
 
 // NOW WE USE AWAIT AND ASYNC TO COMMUNIATE WITH OUTSIDE API
+
+// https://api.github.com/users/JohnattanIsrael/repos
+// http://api.dailysmarty.com/posts
+
+async function queryApis() {
+    const postPromise = fetch('https://api.dailysmarty.com/posts');
+    const posts = await postPromise.then(response => response.json());
+    console.log(posts);
+    
+    const reposPromise = fetch('https://api.github.com/users/JohnattanIsrael/repos');
+    const repos = await reposPromise.then(response => response.json());
+    console.log(repos);
+}
+
+queryApis();
+// because we used async and await together we can be sure of the roder of aparition of the returned objects
+
+/*
+{posts: Array(10)}posts: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+------
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+*/
+
+// SO WHAT HAPPENS IF THE APIs DOES NOT WORK(WHICH IS VERY COMMON)
+// a diffeerent way to catcing errors
+
+// https://api.github.com/users/JohnattanIsrael/repos
+// http://api.dailysmarty.com/posts
+
+async function queryApis() {
+    try{
+      const postPromise = fetch('http://api.dailysmarty.com/posts');//in this case we are calling http instead of https
+      const posts = await postPromise.then(response => response.json());
+      console.log(posts);
+    
+      const reposPromise = fetch('https://api.github.com/users/JohnattanIsrael/repos');
+      const repos = await reposPromise.then(response => response.json());
+      console.log(repos);
+    } catch(err) {
+        console.log(err);
+    }
+}
+
+queryApis();
+// TypeError: Failed to fetch <-----------------
+// the whole process got haulted
+
+// But if th error occurs in the second process, the the first one does get printed
+
+async function queryApis() {
+    try{
+      const postPromise = fetch('https://api.dailysmarty.com/posts');
+      const posts = await postPromise.then(response => response.json());
+      console.log(posts);
+    
+      const reposPromise = fetch('http://api.github.com/users/JohnattanIsrael/repos');//in this case we are calling http instead of https
+      const repos = await reposPromise.then(response => response.json());
+      console.log(repos);
+    } catch(err) {
+        console.log(err);
+    }
+}
+
+queryApis();
+// {posts: Array(10)}
+// TypeError: Failed to fetch
+
+// you are not told where was the problem so what you can do is:
+// the industry aproach to this problems
+
+
+async function queryApis() {
+    try{
+      const postPromise = fetch('http://api.dailysmarty.com/posts');//in this case we are calling http instead of https
+      const posts = await postPromise.then(response => response.json());
+      console.log(posts);
+    } catch(err) {
+        console.log(err);
+        console.log('there was an err with the daily smarty api');
+    }
+    try{
+      const reposPromise = fetch('https://api.github.com/users/JohnattanIsrael/repos');
+      const repos = await reposPromise.then(response => response.json());
+      console.log(repos);
+    } catch(err) {
+        console.log(err);
+        console.log('there was an err with the GitHub api');
+    }
+}
+
+queryApis();
+// TypeError: Failed to fetch
+// there was an err with the daily smarty api
+// (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+// in this last case the second process did happen even if the first did not work
+
+// you may want to sometimes have the entire process stoped when there is an error for expample when you ar running an authentication process, and want the other processes to not even happen if the first test(promise) was not passed, so you can ask your self if the prosses has happen in the same try catch element or in separated ones,  
+
+
+
